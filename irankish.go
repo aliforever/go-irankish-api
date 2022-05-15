@@ -33,15 +33,16 @@ func (i *IranKish) CallbackHandler(data chan<- *CallbackData) (handler func(w ht
 		r.ParseForm()
 
 		cd := &CallbackData{
-			Token:        r.Form.Get("token"),
-			MerchantID:   r.Form.Get("merchantId"),
-			AcceptorID:   r.Form.Get("acceptorId"),
-			ResponseCode: r.Form.Get("responseCode"),
-			RequestID:    r.Form.Get("requestId"),
-			PaymentID:    r.Form.Get("paymentId"),
-			Amount:       r.Form.Get("amount"),
-			ReferenceID:  r.Form.Get("referenceId"),
-			response:     make(chan []byte, 1),
+			Token:         r.Form.Get("token"),
+			MerchantID:    r.Form.Get("merchantId"),
+			AcceptorID:    r.Form.Get("acceptorId"),
+			ResultCode:    r.Form.Get("resultCode"),
+			CardNo:        r.Form.Get("cardNo"),
+			InvoiceNumber: r.Form.Get("InvoiceNumber"),
+			PaymentID:     r.Form.Get("paymentId"),
+			Amount:        r.Form.Get("amount"),
+			ReferenceID:   r.Form.Get("referenceId"),
+			response:      make(chan []byte, 1),
 		}
 
 		go func() {

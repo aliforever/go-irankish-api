@@ -1,23 +1,24 @@
 package irankish
 
 type CallbackData struct {
-	Token        string
-	MerchantID   string
-	AcceptorID   string
-	ResponseCode string
-	RequestID    string
-	PaymentID    string
-	Amount       string
-	ReferenceID  string
-	response     chan []byte
+	Token         string
+	MerchantID    string
+	AcceptorID    string
+	ResultCode    string
+	InvoiceNumber string
+	PaymentID     string
+	Amount        string
+	ReferenceID   string
+	CardNo        string
+	response      chan []byte
 }
 
 func (c *CallbackData) WriteResponse(data []byte) {
 	c.response <- data
 }
 
-func (c *CallbackData) TranslateResponseCode() string {
-	if message, ok := callbackCodes[c.ResponseCode]; ok {
+func (c *CallbackData) TranslateResultCode() string {
+	if message, ok := callbackCodes[c.ResultCode]; ok {
 		return message
 	}
 
