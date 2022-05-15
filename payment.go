@@ -11,7 +11,7 @@ type payment struct {
 	merchantID      string
 	sha1Key         string
 	token           string
-	referenceNumber string
+	referenceNumber int64
 }
 
 func (p *payment) xml() (xml string, err error) {
@@ -30,7 +30,7 @@ func (p *payment) xml() (xml string, err error) {
 		return
 	}
 
-	if p.referenceNumber == "" {
+	if p.referenceNumber == 0 {
 		err = emptyReferenceNumber
 		return
 	}
@@ -38,7 +38,7 @@ func (p *payment) xml() (xml string, err error) {
 	var tags []string
 	tags = append(tags, fmt.Sprintf("<ns1:token>%s</ns1:token>", p.token))
 	tags = append(tags, fmt.Sprintf("<ns1:merchantId>%s</ns1:merchantId>", p.merchantID))
-	tags = append(tags, fmt.Sprintf("<ns1:referenceNumber>%s</ns1:referenceNumber>", p.referenceNumber))
+	tags = append(tags, fmt.Sprintf("<ns1:referenceNumber>%d</ns1:referenceNumber>", p.referenceNumber))
 	tags = append(tags, fmt.Sprintf("<ns1:sha1Key>%s</ns1:sha1Key>", p.sha1Key))
 
 	xml = strings.ReplaceAll(verifyPaymentXML, "%tags%", strings.Join(tags, "\n"))

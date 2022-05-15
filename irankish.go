@@ -53,7 +53,7 @@ func (i *IranKish) CallbackHandler(data chan<- *CallbackData) (handler func(w ht
 	return
 }
 
-func (i *IranKish) VerifyPayment(token, referenceNumber string) (*VerifyPaymentResult, error) {
+func (i *IranKish) VerifyPayment(token string, referenceNumber int64) (*VerifyPaymentResult, error) {
 	p := &payment{
 		merchantID:      i.merchantID,
 		sha1Key:         i.sha1Key,

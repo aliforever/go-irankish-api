@@ -100,7 +100,7 @@ func TestIranKish_VerifyPayment(t *testing.T) {
 	}
 	type args struct {
 		token           string
-		referenceNumber string
+		referenceNumber int64
 	}
 	tests := []struct {
 		name    string
@@ -117,7 +117,7 @@ func TestIranKish_VerifyPayment(t *testing.T) {
 			},
 			args: args{
 				token:           "7B5810F12FCAC64794E0CD5CAA3CAF107564",
-				referenceNumber: "0",
+				referenceNumber: 0,
 			},
 			want:    nil,
 			wantErr: false,
