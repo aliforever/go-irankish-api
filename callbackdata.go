@@ -14,7 +14,9 @@ type CallbackData struct {
 }
 
 func (c *CallbackData) WriteResponse(data []byte) {
-	c.response <- data
+	go func() {
+		c.response <- data
+	}()
 }
 
 func (c *CallbackData) TranslateResultCode() string {
