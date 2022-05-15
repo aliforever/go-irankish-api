@@ -28,11 +28,11 @@ func (i *IranKish) SimpleFromRedirectingToGateway(token string) string {
 	return fmt.Sprintf(form, gatewayUrl, token, i.merchantID)
 }
 
-func (i *IranKish) CallbackHandler(data chan<- *CallbackData) (handler func(w http.ResponseWriter, r *http.Request)) {
+func (i *IranKish) CallbackHandler(data chan<- CallbackData) (handler func(w http.ResponseWriter, r *http.Request)) {
 	handler = func(w http.ResponseWriter, r *http.Request) {
 		r.ParseForm()
 
-		cd := &CallbackData{
+		cd := CallbackData{
 			Token:         r.Form.Get("token"),
 			MerchantID:    r.Form.Get("merchantId"),
 			AcceptorID:    r.Form.Get("acceptorId"),

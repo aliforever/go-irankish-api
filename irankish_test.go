@@ -54,7 +54,7 @@ func TestIranKish_NewToken(t *testing.T) {
 }
 
 func TestIranKish_CallbackHandler(t *testing.T) {
-	listener := make(chan *CallbackData)
+	listener := make(chan CallbackData)
 	go func() {
 		for data := range listener {
 			fmt.Println(data.Amount, "111")
@@ -65,7 +65,7 @@ func TestIranKish_CallbackHandler(t *testing.T) {
 		merchantID string
 	}
 	type args struct {
-		data chan<- *CallbackData
+		data chan<- CallbackData
 	}
 	tests := []struct {
 		name        string
