@@ -13,6 +13,10 @@ type CallbackData struct {
 	response      chan []byte
 }
 
+func (c *CallbackData) WasSuccessful() bool {
+	return c.ResultCode == "100"
+}
+
 func (c *CallbackData) WriteResponse(data []byte) {
 	go func() {
 		c.response <- data
