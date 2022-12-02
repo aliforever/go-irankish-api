@@ -1,61 +1,85 @@
 # IranKish Payment Gateway API for Go
 The package is used for payments using Iranian IranKish payment gateway
 
+For older version with SOAP check `soap` branch.
+
 ## Install
 ```go get -u github.com/aliforever/go-irankish-api```
 
 ## Usage
 Variables:
 ```go
-merchantID := "" // <-- Replace
-sha1Key := "" // <-- Replace
+terminalID := "" // <- Place your terminal ID 
+acceptorID := "" // <- Place your acceptor ID
+passphrase := "" // <- Place your Passphrase
+publicKey := "" // <- Place your Public Key
 
-ik := irankish.New(merchanID, sha1Key)
-```
-- MakeToken:
-```go
-invoiceID := ""
-amount := 0
-callbackUrl := ""
-
-token := ik.NewToken(invoiceID, amount, callbackUrl)
-
-result, err := token.Make()
+ik, err := irankish.New(terminalID, acceptorID, passphrase, publicKey)
 if err != nil {
-	fmt.Println(err)
-	return
+    panic(err)
+}
+```
+- MakeToken for normal Purchase:
+```go
+paymentID := ""
+requestID := ""
+amount := 0
+revertUri := ""
+
+token, err := ik.MakePurchaseToken(paymentID, requestID, amount, revertUri)
+if err != nil {
+	panic(err)
 }
 
-fmt.Println(result)
-```
-After making token you can write a simple redirecting form as a html to redirect users to the gateway:
-```go
-htmlForm := ik.SimpleFromRedirectingToGateway(token) // <- Token Received from Make Token Method
+fmt.Println(token)
 ```
 
-Also, you can either handle incoming POST requests from the gateway yourself or use a channel and package's handler:
+After making token you can get a simple redirecting form as a html to redirect users to the gateway:
 ```go
-payments := make(chan *irankish.CallbackData)
-go func() {
-    for data := range payments {
-        fmt.Println(data)
-        data.WriteResponse([]byte("payment result"))
-    }   
+htmlForm := token.RedirectForm() // <- Token Received from Make Token Method
+```
+
+Also, you can either handle incoming POST requests from the gateway yourself or listen to package's incoming callbacks. Here's an example to listen and verify payments using package's callback
+```go
+http.HandleFunc("/payment_callback", ik.CallbackHandler) // Registers a http handler for callbacks
+go http.ListenAndServe(":8001", nil) // Run your http server
+
+for request := range ik.IncomingCallbacks() {
+    input, err := request.ParseUserInput()
+    if err != nil {
+        request.WriteResponse(http.StatusBadRequest, []byte(err.Error()))
+        return
+    }
+    
+    fmt.Println(fmt.Sprintf("%+v", input))
+    
+    if input.RetrievalReferenceNumber != "" && input.SystemTraceAuditNumber != "" {
+        result, err := ik.VerifyPurchase(input.Token, input.RetrievalReferenceNumber, input.SystemTraceAuditNumber)
+        if err != nil {
+            request.WriteResponse(http.StatusBadRequest, []byte(err.Error()))
+            fmt.Println(err)
+            continue
+        }
+	
+        fmt.Println(result)
+    }
+    
+    request.WriteResponse(http.StatusOK, []byte("ok"))
 }
-
-http.HandleFunc("/verify", ik.CallbackHandler(callbacks))
-http.ListenAndServe(":8001", nil)
 ```
+-- Make sure to write the response or it will hang on the goroutine
 - VerifyPayment:
 ```go
 token := ""
 referenceNumber := ""
+auditNumber := ""
 
-result, err := i.VerifyPayment(token, referenceNumber)
+result, err := ik.VerifyPurchase(token, referenceNumber, auditNumber)
 if err != nil {
-    fmt.Println(err)
-    return
+    request.WriteResponse(http.StatusBadRequest, []byte(err.Error()))
+    panic(err)
 }
+
 fmt.Println(result)
 ```
 
