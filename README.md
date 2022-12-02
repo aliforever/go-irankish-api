@@ -1,5 +1,7 @@
 # IranKish Payment Gateway API for Go
-The package is used for payments using Iranian IranKish payment gateway
+The package is used for handling payments through Iranian IranKish payment gateway.
+
+Based on **IPG_TechnicalGuide.V9.pdf**
 
 For older version with SOAP check `soap` branch.
 
