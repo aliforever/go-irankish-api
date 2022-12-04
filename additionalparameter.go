@@ -1,6 +1,6 @@
 package irankish
 
 type AdditionalParameter struct {
-	Key   string `json:"key"`
-	Value string `json:"value"`
+	Key   string `json:"Key"`
+	Value string `json:"Value"`
 }
