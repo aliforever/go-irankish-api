@@ -17,17 +17,17 @@ type IranKish struct {
 	acceptorID string
 	passphrase string
 	publicKey  *rsa.PublicKey
-
-	callbacks chan IncomingRequest
+	logger     Logger
+	callbacks  chan IncomingRequest
 }
 
-func New(terminalID, acceptorID, passphrase, publicKey string) (*IranKish, error) {
+func New(terminalID, acceptorID, passphrase, publicKey string, logger Logger) (*IranKish, error) {
 	pKey, err := encryptionbox.EncryptionBox{}.RSA.PublicKeyFromPKIXPEMBytes([]byte(publicKey))
 	if err != nil {
 		return nil, err
 	}
 
-	return &IranKish{terminalID: terminalID, acceptorID: acceptorID, passphrase: passphrase, publicKey: pKey, callbacks: make(chan IncomingRequest)}, nil
+	return &IranKish{terminalID: terminalID, acceptorID: acceptorID, passphrase: passphrase, publicKey: pKey, callbacks: make(chan IncomingRequest), logger: logger}, nil
 }
 
 func (i *IranKish) IncomingCallbacks() chan IncomingRequest {
@@ -92,6 +92,10 @@ func (i *IranKish) MakePurchaseToken(paymentID, requestID string, amount int64, 
 		return nil, err
 	}
 
+	if i.logger != nil {
+		go i.logger.Println(string(result))
+	}
+
 	var r *Response
 	err = json.Unmarshal(result, &r)
 	if err != nil {
@@ -133,6 +137,10 @@ func (i *IranKish) VerifyPurchase(token, referenceNumber, auditNumber string) (*
 	result, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
+	}
+
+	if i.logger != nil {
+		go i.logger.Println(string(result))
 	}
 
 	var r *Response
