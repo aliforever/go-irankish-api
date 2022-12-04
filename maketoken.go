@@ -17,7 +17,7 @@ type makeToken struct {
 	PaymentId            string                `json:"paymentId"`
 	CmsPreservationId    string                `json:"cmsPreservationId"`
 	RequestTimestamp     int64                 `json:"requestTimestamp"`
-	AdditionalParameters *additionalParameters `json:"additionalParameters,omitempty"`
+	AdditionalParameters []AdditionalParameter `json:"additionalParameters,omitempty"`
 }
 
 func newMakeToken() *makeToken {
@@ -78,8 +78,8 @@ func (m *makeToken) SetRequestTimestampNow() *makeToken {
 	return m
 }
 
-func (m *makeToken) SetAdditionalParameters(parameters additionalParameters) *makeToken {
-	m.AdditionalParameters = &parameters
+func (m *makeToken) SetAdditionalParameters(parameters ...AdditionalParameter) *makeToken {
+	m.AdditionalParameters = append(m.AdditionalParameters, parameters...)
 
 	return m
 }

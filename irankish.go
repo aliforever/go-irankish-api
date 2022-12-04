@@ -46,7 +46,7 @@ func (i *IranKish) CallbackHandler(wr http.ResponseWriter, r *http.Request) {
 	<-ir.Done
 }
 
-func (i *IranKish) MakePurchaseToken(paymentID, requestID string, amount int64, revertUri string) (*MakeTokenResult, error) {
+func (i *IranKish) MakePurchaseToken(paymentID, requestID string, amount int64, revertUri string, params ...AdditionalParameter) (*MakeTokenResult, error) {
 	token := newMakeToken().
 		SetPaymentID(paymentID).
 		SetRequestID(requestID).
@@ -56,6 +56,10 @@ func (i *IranKish) MakePurchaseToken(paymentID, requestID string, amount int64, 
 		SetRevertUri(revertUri).
 		SetTransactionTypePurchase().
 		SetAmount(amount)
+
+	if len(params) > 0 {
+		token.SetAdditionalParameters(params...)
+	}
 
 	iv, data, err := i.createAuthenticationEnvelopeHex(token.Amount)
 	if err != nil {
