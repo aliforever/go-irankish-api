@@ -67,6 +67,7 @@ func (p *Proxy) Start() error {
 }
 
 func (p *Proxy) registerRoutes() {
+	p.mux.HandleFunc("/redirect", p.handleRedirect)
 	p.mux.HandleFunc("/", p.handleRequests)
 }
 
@@ -117,6 +118,20 @@ func (p *Proxy) getEndpointCallback(endpoint string) *url.URL {
 	}
 
 	return nil
+}
+
+func (p *Proxy) handleRedirect(writer http.ResponseWriter, request *http.Request) {
+	token := request.URL.Query().Get("token")
+	if token == "" {
+		_, _ = writer.Write([]byte("invalid_request"))
+		return
+	}
+
+	mkr := &MakeTokenResult{Token: token}
+
+	writer.WriteHeader(http.StatusOK)
+	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+	_, _ = writer.Write([]byte(mkr.RedirectForm()))
 }
 
 // handleAddCallback receives the request as POST form with following fields
