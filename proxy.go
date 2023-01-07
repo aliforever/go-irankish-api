@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strings"
 	"sync"
 )
 
@@ -148,4 +149,24 @@ func (p *Proxy) handleAddCallback(writer http.ResponseWriter, request *http.Requ
 
 	// TODO: Add a mechanism to show error if the user tries to register a duplicate endpoint that they don't own
 	p.callbackUrls[endpoint] = callbackUrlParsed
+}
+
+func AddCallbackUrl(serverAddress, endpoint, callbackUrl string) error {
+	values := url.Values{}
+	values.Set("endpoint", endpoint)
+	values.Set("callback_url", callbackUrl)
+
+	req, err := http.NewRequest("POST", serverAddress, strings.NewReader(values.Encode()))
+	if err != nil {
+		return err
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	_, err = http.DefaultClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
