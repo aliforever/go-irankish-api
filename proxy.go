@@ -33,12 +33,14 @@ func NewProxyWithMux(httpUri string, mux *http.ServeMux) *Proxy {
 
 // EnableCallbackUrls by calling this method /add_callback_url endpoint will be activated
 //	This is to proxy back callback (revert url) requests to specified endpoints
-func (p *Proxy) EnableCallbackUrls() {
+func (p *Proxy) EnableCallbackUrls() *Proxy {
 	p.callbackUrlsLocker.Lock()
 	defer p.callbackUrlsLocker.Unlock()
 
 	p.callbackUrls = map[string]*url.URL{}
 	p.mux.HandleFunc("/add_callback_url", p.handleAddCallback)
+
+	return p
 }
 
 func (p *Proxy) Start() error {
