@@ -156,7 +156,7 @@ func AddCallbackUrl(serverAddress, endpoint, callbackUrl string) error {
 	values.Set("endpoint", endpoint)
 	values.Set("callback_url", callbackUrl)
 
-	req, err := http.NewRequest("POST", serverAddress, strings.NewReader(values.Encode()))
+	req, err := http.NewRequest("POST", serverAddress+"/add_callback_url", strings.NewReader(values.Encode()))
 	if err != nil {
 		return err
 	}
