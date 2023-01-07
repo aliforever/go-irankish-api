@@ -82,6 +82,7 @@ func (p *Proxy) handleRequests(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
+	request.Header.Del("X-Forwarded-For")
 	rr.Header = request.Header
 
 	// If user has assigned a callback for this endpoint, forward the request there, else forward it to payment gateway
