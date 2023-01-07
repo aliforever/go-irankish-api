@@ -10,6 +10,7 @@ import (
 	"github.com/aliforever/encryptionbox"
 	"io"
 	"net/http"
+	"net/url"
 )
 
 type IranKish struct {
@@ -19,6 +20,7 @@ type IranKish struct {
 	publicKey  *rsa.PublicKey
 	logger     Logger
 	callbacks  chan IncomingRequest
+	host       *url.URL
 }
 
 func New(terminalID, acceptorID, passphrase, publicKey string, logger Logger) (*IranKish, error) {
@@ -27,7 +29,35 @@ func New(terminalID, acceptorID, passphrase, publicKey string, logger Logger) (*
 		return nil, err
 	}
 
-	return &IranKish{terminalID: terminalID, acceptorID: acceptorID, passphrase: passphrase, publicKey: pKey, callbacks: make(chan IncomingRequest), logger: logger}, nil
+	return &IranKish{
+		terminalID: terminalID,
+		acceptorID: acceptorID,
+		passphrase: passphrase,
+		publicKey:  pKey,
+		callbacks:  make(chan IncomingRequest),
+		logger:     logger,
+		host:       host}, nil
+}
+
+func NewWithProxyHost(terminalID, acceptorID, passphrase, publicKey string, proxyAddress string, logger Logger) (*IranKish, error) {
+	pKey, err := encryptionbox.EncryptionBox{}.RSA.PublicKeyFromPKIXPEMBytes([]byte(publicKey))
+	if err != nil {
+		return nil, err
+	}
+
+	proxyUrl, err := url.Parse(proxyAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	return &IranKish{
+		terminalID: terminalID,
+		acceptorID: acceptorID,
+		passphrase: passphrase,
+		publicKey:  pKey,
+		callbacks:  make(chan IncomingRequest),
+		logger:     logger,
+		host:       proxyUrl}, nil
 }
 
 func (i *IranKish) IncomingCallbacks() chan IncomingRequest {
@@ -81,7 +111,7 @@ func (i *IranKish) MakePurchaseToken(paymentID, requestID string, amount int64, 
 		return nil, err
 	}
 
-	resp, err := http.Post(TokenUrl, "application/json", bytes.NewReader(j))
+	resp, err := http.Post(i.host.String()+TokenUrl, "application/json", bytes.NewReader(j))
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +158,7 @@ func (i *IranKish) VerifyPurchase(token, referenceNumber, auditNumber string) (*
 		return nil, err
 	}
 
-	resp, err := http.Post(ConfirmationUrl, "application/json", bytes.NewReader(j))
+	resp, err := http.Post(i.host.String()+ConfirmationUrl, "application/json", bytes.NewReader(j))
 	if err != nil {
 		return nil, err
 	}
