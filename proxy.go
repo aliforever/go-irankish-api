@@ -19,6 +19,7 @@ type Proxy struct {
 	httpUri string
 	mux     *http.ServeMux
 
+	homePageHandler    func(writer http.ResponseWriter, r *http.Request)
 	callbackUrlsLocker sync.Mutex
 	callbackUrls       map[string]*url.URL
 }
@@ -43,6 +44,12 @@ func (p *Proxy) EnableCallbackUrls() *Proxy {
 	return p
 }
 
+func (p *Proxy) SetHomePageHandler(handler func(writer http.ResponseWriter, r *http.Request)) *Proxy {
+	p.homePageHandler = handler
+
+	return p
+}
+
 func (p *Proxy) Start() error {
 	p.registerRoutes()
 
@@ -54,6 +61,11 @@ func (p *Proxy) registerRoutes() {
 }
 
 func (p *Proxy) handleRequests(writer http.ResponseWriter, request *http.Request) {
+	if request.URL.String() == "/" && p.homePageHandler != nil {
+		p.homePageHandler(writer, request)
+		return
+	}
+
 	defer request.Body.Close()
 
 	b, err := io.ReadAll(request.Body)
