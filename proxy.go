@@ -92,7 +92,10 @@ func (p *Proxy) handleRequests(writer http.ResponseWriter, request *http.Request
 	}
 
 	rr.Header.Set("Content-Type", "application/json")
-	// rr.Header = request.Header
+
+	// Fun fact is that if there are any other headers like x-forwarded-server is set, it will complain about the ip
+	// Maybe it's possible to bypass ip by setting x-forwarded-for header.
+	// rr.Header = request.Header <--- Removed for above mentioned reason
 
 	// If user has assigned a callback for this endpoint, forward the request there, else forward it to payment gateway
 	//	This is to proxy requests coming from payment gateway to custom urls
