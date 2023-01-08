@@ -43,4 +43,5 @@ type TransactionResult struct {
 	BillId                   string `json:"billId"`
 	PaymentId                string `json:"paymentId"`
 	Amount                   string `json:"amount"`
+	DuplicateVerify          bool   `json:"duplicateVerify"` // indicates if payment is already verified
 }
