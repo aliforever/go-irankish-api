@@ -129,8 +129,8 @@ func (p *Proxy) handleRedirect(writer http.ResponseWriter, request *http.Request
 
 	mkr := &MakeTokenResult{Token: token}
 
-	writer.WriteHeader(http.StatusOK)
 	writer.Header().Set("Content-Type", "text/html; charset=utf-8")
+	writer.WriteHeader(http.StatusOK)
 	_, _ = writer.Write([]byte(mkr.RedirectForm()))
 }
 
