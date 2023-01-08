@@ -96,7 +96,7 @@ func (p *Proxy) handleRequests(writer http.ResponseWriter, request *http.Request
 	forwardTo := p.targetUrl
 	if callback := p.getEndpointCallback(requestUrl); callback != nil {
 		forwardTo = callback
-		requestUrl = "/"
+		requestUrl = ""
 	}
 
 	rr, err := http.NewRequest(request.Method, requestUrl, bytes.NewReader(b))
