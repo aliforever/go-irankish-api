@@ -2,6 +2,7 @@ package irankish
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httputil"
@@ -25,14 +26,16 @@ type Proxy struct {
 	targetUrl          *url.URL
 	callbackUrlsLocker sync.Mutex
 	callbackUrls       map[string]*url.URL
+
+	logger Logger
 }
 
-func NewProxy(httpUri string) *Proxy {
-	return &Proxy{httpUri: httpUri, mux: http.NewServeMux(), targetUrl: host}
+func NewProxy(httpUri string, logger Logger) *Proxy {
+	return &Proxy{httpUri: httpUri, mux: http.NewServeMux(), targetUrl: host, logger: logger}
 }
 
-func NewProxyWithMux(httpUri string, mux *http.ServeMux) *Proxy {
-	return &Proxy{httpUri: httpUri, mux: mux, targetUrl: host}
+func NewProxyWithMux(httpUri string, mux *http.ServeMux, logger Logger) *Proxy {
+	return &Proxy{httpUri: httpUri, mux: mux, targetUrl: host, logger: logger}
 }
 
 // EnableCallbackUrls by calling this method /add_callback_url endpoint will be activated
@@ -104,6 +107,10 @@ func (p *Proxy) handleRequests(writer http.ResponseWriter, request *http.Request
 	forwardTo := p.targetUrl
 	if callback := p.getEndpointCallback(request.URL.String()); callback != nil {
 		forwardTo = callback
+	}
+
+	if p.logger != nil {
+		go p.logger.Println(fmt.Sprintf("Forwarding from %s %s to %s", request.RemoteAddr, request.URL.String(), forwardTo.String()))
 	}
 
 	httputil.NewSingleHostReverseProxy(forwardTo).ServeHTTP(writer, rr)
