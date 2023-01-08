@@ -106,7 +106,11 @@ func (p *Proxy) handleRequests(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	rr.Header.Set("Content-Type", request.Header.Get("Content-Type"))
+	if requestUrl == "" {
+		rr.Header = request.Header
+	} else {
+		rr.Header.Set("Content-Type", request.Header.Get("Content-Type"))
+	}
 
 	// Fun fact is that if there are any other headers like x-forwarded-server is set, it will complain about the ip
 	// Maybe it's possible to bypass ip by setting x-forwarded-for header.
