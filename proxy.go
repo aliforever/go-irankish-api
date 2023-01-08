@@ -89,7 +89,17 @@ func (p *Proxy) handleRequests(writer http.ResponseWriter, request *http.Request
 		return
 	}
 
-	rr, err := http.NewRequest(request.Method, request.URL.String(), bytes.NewReader(b))
+	requestUrl := request.URL.String()
+
+	// If user has assigned a callback for this endpoint, forward the request there, else forward it to payment gateway
+	//	This is to proxy requests coming from payment gateway to custom urls
+	forwardTo := p.targetUrl
+	if callback := p.getEndpointCallback(requestUrl); callback != nil {
+		forwardTo = callback
+		requestUrl = "/"
+	}
+
+	rr, err := http.NewRequest(request.Method, requestUrl, bytes.NewReader(b))
 	if err != nil {
 		writer.WriteHeader(http.StatusInternalServerError)
 		_, _ = writer.Write([]byte(err.Error()))
@@ -101,13 +111,6 @@ func (p *Proxy) handleRequests(writer http.ResponseWriter, request *http.Request
 	// Fun fact is that if there are any other headers like x-forwarded-server is set, it will complain about the ip
 	// Maybe it's possible to bypass ip by setting x-forwarded-for header.
 	// rr.Header = request.Header <--- Removed for above mentioned reason
-
-	// If user has assigned a callback for this endpoint, forward the request there, else forward it to payment gateway
-	//	This is to proxy requests coming from payment gateway to custom urls
-	forwardTo := p.targetUrl
-	if callback := p.getEndpointCallback(request.URL.String()); callback != nil {
-		forwardTo = callback
-	}
 
 	if p.logger != nil {
 		go p.logger.Println(fmt.Sprintf("Forwarding from %s %s to %s", request.RemoteAddr, request.URL.String(), forwardTo.String()))
