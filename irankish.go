@@ -10,6 +10,7 @@ import (
 	"github.com/aliforever/encryptionbox"
 	"io"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 )
 
@@ -69,6 +70,15 @@ func (i *IranKish) CallbackHandler(wr http.ResponseWriter, r *http.Request) {
 		Request:        r,
 		responseWriter: wr,
 		Done:           make(chan bool),
+	}
+
+	if i.logger != nil {
+		result, err := httputil.DumpRequest(r, true)
+		if err == nil {
+			go i.logger.Println("callback_received %s", string(result))
+		} else {
+			go i.logger.Println("error dumping request for callback: %s", err)
+		}
 	}
 
 	i.callbacks <- ir

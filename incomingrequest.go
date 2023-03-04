@@ -23,7 +23,7 @@ func (i *IncomingRequest) ParseUserInput() (*UserInput, error) {
 
 	return &UserInput{
 		Token:                    i.Request.Form.Get("token"),
-		AcceptorID:               i.Request.Form.Get("992180008134760"),
+		AcceptorID:               i.Request.Form.Get("acceptorId"),
 		MerchantID:               i.Request.Form.Get("merchantId"),
 		ResponseCode:             i.Request.Form.Get("responseCode"),
 		PaymentID:                i.Request.Form.Get("paymentId"),
