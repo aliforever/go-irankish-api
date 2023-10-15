@@ -14,14 +14,13 @@ import (
 )
 
 type IranKish struct {
-	terminalID     string
-	acceptorID     string
-	passphrase     string
-	publicKey      *rsa.PublicKey
-	logger         Logger
-	callbacks      chan IncomingRequest
-	host           *url.URL
-	remoteIPHeader string
+	terminalID string
+	acceptorID string
+	passphrase string
+	publicKey  *rsa.PublicKey
+	logger     Logger
+	callbacks  chan IncomingRequest
+	host       *url.URL
 }
 
 func New(terminalID, acceptorID, passphrase, publicKey string, logger Logger) (*IranKish, error) {
@@ -38,30 +37,6 @@ func New(terminalID, acceptorID, passphrase, publicKey string, logger Logger) (*
 		callbacks:  make(chan IncomingRequest),
 		logger:     logger,
 		host:       host}, nil
-}
-
-func NewWithRemoteIpHeader(
-	terminalID,
-	acceptorID,
-	passphrase,
-	publicKey string, ipHeader string,
-	logger Logger,
-) (*IranKish, error) {
-
-	pKey, err := encryptionbox.EncryptionBox{}.RSA.PublicKeyFromPKIXPEMBytes([]byte(publicKey))
-	if err != nil {
-		return nil, err
-	}
-
-	return &IranKish{
-		terminalID:     terminalID,
-		acceptorID:     acceptorID,
-		passphrase:     passphrase,
-		publicKey:      pKey,
-		callbacks:      make(chan IncomingRequest),
-		logger:         logger,
-		remoteIPHeader: ipHeader,
-		host:           host}, nil
 }
 
 func NewWithProxyHost(
@@ -91,36 +66,6 @@ func NewWithProxyHost(
 		callbacks:  make(chan IncomingRequest),
 		logger:     logger,
 		host:       proxyUrl}, nil
-}
-
-func NewWithProxyHostAndRemoteIpHeader(
-	terminalID,
-	acceptorID,
-	passphrase,
-	publicKey string,
-	proxyAddress string,
-	ipHeader string,
-	logger Logger,
-) (*IranKish, error) {
-	pKey, err := encryptionbox.EncryptionBox{}.RSA.PublicKeyFromPKIXPEMBytes([]byte(publicKey))
-	if err != nil {
-		return nil, err
-	}
-
-	proxyUrl, err := url.Parse(proxyAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	return &IranKish{
-		terminalID:     terminalID,
-		acceptorID:     acceptorID,
-		passphrase:     passphrase,
-		publicKey:      pKey,
-		callbacks:      make(chan IncomingRequest),
-		logger:         logger,
-		remoteIPHeader: ipHeader,
-		host:           proxyUrl}, nil
 }
 
 func (i *IranKish) IncomingCallbacks() <-chan IncomingRequest {
@@ -186,11 +131,7 @@ func (i *IranKish) MakePurchaseToken(
 		return nil, err
 	}
 
-	fmt.Println(i.host.String() + TokenUrl)
-
-	if i.remoteIPHeader != "" {
-		req.Header.Set("X-Forwarded-For", i.remoteIPHeader)
-	}
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -248,14 +189,13 @@ func (i *IranKish) VerifyPurchase(token, referenceNumber, auditNumber string) (*
 		return nil, err
 	}
 
-	if i.remoteIPHeader != "" {
-		req.Header.Set("X-Forwarded-For", i.remoteIPHeader)
-	}
+	req.Header.Set("Content-Type", "application/json")
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
+
 	defer resp.Body.Close()
 
 	result, err := io.ReadAll(resp.Body)
