@@ -7,10 +7,11 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/aliforever/encryptionbox"
 	"io"
 	"net/http"
 	"net/url"
+
+	"github.com/aliforever/encryptionbox"
 )
 
 type IranKish struct {
@@ -224,6 +225,74 @@ func (i *IranKish) VerifyPurchase(token, referenceNumber, auditNumber string) (*
 	}
 
 	return makeTokenResult, nil
+}
+
+func (i *IranKish) SingleInquiryByReferenceNumber(referenceNumber string) (*InquiryResult, error) {
+	return i.singleInquiry(&referenceNumber, nil, nil)
+}
+
+func (i *IranKish) SingleInquiryByToken(token string) (*InquiryResult, error) {
+	return i.singleInquiry(nil, &token, nil)
+}
+
+func (i *IranKish) singleInquiry(referenceNumber *string, token *string, requestID *string) (*InquiryResult, error) {
+	payload := newInquiry().
+		SetPassPhrase(i.passphrase).
+		SetTerminalID(i.terminalID)
+
+	if referenceNumber != nil {
+		payload.SetByReferenceNumber(*referenceNumber)
+	} else if token != nil {
+		payload.SetByPaymentToken(*token)
+	} else if requestID != nil {
+		payload.SetByRequestID(*requestID)
+	}
+
+	j, err := json.Marshal(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", i.host.String()+InquiryUrl, bytes.NewReader(j))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+
+	result, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	if i.logger != nil {
+		go i.logger.Println(string(result))
+	}
+
+	var r *Response
+	err = json.Unmarshal(result, &r)
+	if err != nil {
+		return nil, err
+	}
+
+	if !r.Status {
+		return nil, fmt.Errorf("%s - %s", r.ResponseCode, r.Description)
+	}
+
+	var inquiryResult *InquiryResult
+	err = json.Unmarshal(r.Result, &inquiryResult)
+	if err != nil {
+		return nil, err
+	}
+
+	return inquiryResult, nil
 }
 
 func (i *IranKish) createAuthenticationEnvelopeHex(amount int64) (iv, data string, err error) {
